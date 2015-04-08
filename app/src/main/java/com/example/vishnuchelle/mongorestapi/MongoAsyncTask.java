@@ -75,7 +75,7 @@ public class MongoAsyncTask extends AsyncTask<Void,Void,Void> {
         try {
             //convert json object to string
             message = object.toString();
-
+            //pass the string as data to the POST url
             p.setEntity(new StringEntity(message, "UTF8"));
             p.setHeader("Content-type", "application/json");
             HttpResponse resp = hc.execute(p);

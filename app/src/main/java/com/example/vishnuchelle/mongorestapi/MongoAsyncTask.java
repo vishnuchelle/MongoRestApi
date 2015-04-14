@@ -8,6 +8,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -37,44 +38,58 @@ public class MongoAsyncTask extends AsyncTask<Void,Void,Void> {
         String database = "diarytest";
         String collection = "testcollection";
 
-        //Http POST url
+
         String url = "https://api.mongolab.com/api/1/databases/" +
                 database +
                 "/collections/" +
                 collection +
                 "?apiKey=" + key;
 
-        HttpPost p = new HttpPost(url);
+        //Json array for group members
+        JSONArray members = new JSONArray();
+        members.put("vishnu");
+        members.put("varun");
+        members.put("yashwanth");
+
+        //JSON array of objects for status
+        JSONArray status = new JSONArray();
+
+        JSONObject status1 = new JSONObject();
+        JSONObject status2 = new JSONObject();
+
+        try{
+            status1.put("date","04-14-2015");
+            status1.put("userName","vishnu");
+            status1.put("status","2This is first status by vishnu");
+
+            status2.put("date","04-15-2015");
+            status2.put("userName","yashwanth");
+            status2.put("status","2This is second status by yahswanth");
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        status.put(status1);
+        status.put(status2);
+
 
         //sample JSON object
-        JSONObject object = new JSONObject();
+        JSONObject group = new JSONObject();
         try {
-            object.put("email", "v@v.com.com");
-            object.put("old_passw", "456");
-            object.put("use_id", "test1");
-            object.put("new_passw", "789");
-            object.put("phone","456123");
+            group.put("groupName", "Friends");
+            group.put("groupMembers", members);
+            group.put("groupStatus", status);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-//      JSONArray arrayJson = new JSONArray();
-//      for(int i =0;i<10;i++){
-//        JSONObject object = new JSONObject();
-//        try {
-//            object.put("email", "a@b.com");
-//            object.put("old_passw", "456");
-//            object.put("use_id", "456");
-//            object.put("new_passw", "789");
-//            arrayJson.put(object);
-//        }catch (Exception e){
-//            e.printStackTrace();
-//        }
-//      }
+        //Http POST url
+        HttpPost p = new HttpPost(url);
 
         try {
             //convert json object to string
-            message = object.toString();
+            message = group.toString();
             //pass the string as data to the POST url
             p.setEntity(new StringEntity(message, "UTF8"));
             p.setHeader("Content-type", "application/json");
@@ -92,20 +107,79 @@ public class MongoAsyncTask extends AsyncTask<Void,Void,Void> {
         }
     }
 
+
+    //HTTP put request to update documents in the collection
+    public void httpPutUpdate(){
+
+        String key = "hmmOXhHsA3Kp1f8HdZApSdh98JVvPLfP";
+        String database = "diarytest";
+        String collection = "testcollection";
+        boolean result = false;
+        String message = "";
+
+        String url = "https://api.mongolab.com/api/1/databases/" +
+                database +
+                "/collections/" +
+                collection;
+
+        JSONObject status3 = new JSONObject();
+
+        try{
+            status3.put("date","04-14-2015");
+            status3.put("userName","vishnu");
+            status3.put("status","2This is first status by vishnu");
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+
+        HttpClient hc = new DefaultHttpClient();
+        //Http POST url
+        HttpPut put = new HttpPut(url);
+
+        try {
+            //convert json object to string
+            message = status3.toString();
+            //pass the string as data to the POST url
+            put.setEntity(new StringEntity(message, "UTF8"));
+            put.setHeader("Content-type", "application/json");
+            HttpResponse resp = hc.execute(put);
+            if (resp != null) {
+                if (resp.getStatusLine().getStatusCode() == 200)
+                    result = true;
+            }
+            Log.i("Response Code", resp.getStatusLine().getStatusCode() + "");
+            Log.i("Result is", result + "");
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.i("Failed", "POST Not Successful");
+
+        }
+
+    }
+
     //http get request to retrive data from the server.
     public void httpGetRetrieve(){
 
         String key = "hmmOXhHsA3Kp1f8HdZApSdh98JVvPLfP";
+        String database = "diarytest";
+        String collection = "testcollection";
 //        String url = "https://api.mongolab.com/api/1/databases/diarytest/collections/testcollection?q={%22use_id%22:%22chelle%22}&f={%22email%22:1}&apiKey=hmmOXhHsA3Kp1f8HdZApSdh98JVvPLfP";
 //        https://api.mongolab.com/api/1/databases/diarytest/collections/testcollection?q={%22use_id%22:%22chelle%22}&f={%22email%22:1}&apiKey=hmmOXhHsA3Kp1f8HdZApSdh98JVvPLfP
 
-        String url = "https://api.mongolab.com/api/1/databases/diarytest/collections/testcollection";
+        String url = "https://api.mongolab.com/api/1/databases/" +
+                database +
+                "/collections/" +
+                collection;
 
         List<NameValuePair> params = new ArrayList<NameValuePair>();
+
         //prameters to be added to the url
-        params.add(new BasicNameValuePair("q", "{\"use_id\":\"test1\"}"));
-        params.add(new BasicNameValuePair("f","{\"phone\":1}"));
-        params.add(new BasicNameValuePair("apiKey","hmmOXhHsA3Kp1f8HdZApSdh98JVvPLfP"));
+        params.add(new BasicNameValuePair("q", "{\"groupMembers\":\"vishnu\"}"));
+//        params.add(new BasicNameValuePair("f","{\"phone\":1}"));
+        params.add(new BasicNameValuePair("apiKey",key));
+
         //create http client
         HttpClient httpClient = new DefaultHttpClient();
         String paramsString = URLEncodedUtils.format(params, "UTF-8");
@@ -150,6 +224,7 @@ public class MongoAsyncTask extends AsyncTask<Void,Void,Void> {
 
     @Override
     protected Void doInBackground(Void... params) {
+
 //        httpPostInsert();
         httpGetRetrieve();
         return null;
